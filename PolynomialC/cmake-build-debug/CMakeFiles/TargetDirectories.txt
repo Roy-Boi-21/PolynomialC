@@ -1,0 +1,3 @@
+C:/Users/roybo/OneDrive/Documents/Personal Projects/PolynomialC/cmake-build-debug/CMakeFiles/PolynomialC.dir
+C:/Users/roybo/OneDrive/Documents/Personal Projects/PolynomialC/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/roybo/OneDrive/Documents/Personal Projects/PolynomialC/cmake-build-debug/CMakeFiles/rebuild_cache.dir

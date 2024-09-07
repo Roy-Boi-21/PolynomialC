@@ -1,5 +1,5 @@
 //
-// Created by roybo on 9/3/2024.
+// Created by Roy Boi 21 on 9/3/2024.
 //
 
 #include "PolynomialC.h"
@@ -35,6 +35,8 @@ void remove_top_zero_terms(vector<double>& coefficient_list) {
  */
 Polynomial::Polynomial() {
     coefficient_list = {0};
+    a = 0;
+    keyword = "";
 }
 
 
@@ -42,28 +44,33 @@ Polynomial::Polynomial() {
  *
  * The list constructor takes a list of numbers and uses those as the constants for the polynomial.
  */
-Polynomial::Polynomial(vector<double> set_coefficient_list) {
+Polynomial::Polynomial(vector<double> set_coefficient_list, double set_a=0) {
     remove_top_zero_terms(set_coefficient_list);
     coefficient_list = set_coefficient_list;
+    a = set_a;
+    keyword = "";
 }
 
 
 /* Keyword Constructor
  *
  * The keyword constructor creates special sequences of polynomials that are meant to represent
- * non-polynomial functions such as sine(x) and e^x.
+ * non-polynomial functions such as sine(x) and e^x.  These approximations are accurate to 100 terms.
  *
  * Parameters: A keyword for a specific non-polynomial function.  (String)
  * - "sine" or "sin": Creates a polynomial that is a representation for sine.
  * - "cosine" or "cos": Creates a polynomial that is a representation for cosine.
  * - "euler", "e^x", or "e": Creates a polynomial that is a representation for e^x.
- * Precision: The amount of terms to be used for the preciseness of the function.  (Integer)  [Optional]
+ * - "ln", "lnx", "log", or "logx": Creates a polynomial that is a representation for ln(x).
  */
-Polynomial::Polynomial(const string& keyword, int precision=40) {
+Polynomial::Polynomial(const string& keyword) {
     bool negative = false;
     double value = 0;
+    int precision = 1000;
+    a = 0;
 
     if (keyword == "sine" || keyword == "sin") {
+        this->keyword = "sine";
         for (int i = 0; i < precision; i++) {
             if (i % 2 == 1) {
                 value = 1.0f / factorial(i);
@@ -77,6 +84,7 @@ Polynomial::Polynomial(const string& keyword, int precision=40) {
             }
         }
     } else if (keyword == "cosine" || keyword == "cos") {
+        this->keyword = "cosine";
         for (int i = 0; i < precision; i++) {
             if (i % 2 == 0) {
                 value = 1.0f / factorial(i);
@@ -90,9 +98,22 @@ Polynomial::Polynomial(const string& keyword, int precision=40) {
             }
         }
     } else if (keyword == "euler" || keyword == "e^x" || keyword == "e") {
+        this->keyword = "euler";
         for (int i = 0; i < precision; i++) {
             value = 1.0f / factorial(i);
             coefficient_list.push_back(value);
+        }
+    } else if (keyword == "ln" || keyword == "lnx" || keyword == "log" || keyword == "logx") {
+        this->keyword = "ln";
+        coefficient_list.push_back(0);
+        a = 1;
+        for (int i = 1; i < precision; i++) {
+            value = 1.0f / float(i);
+            if (negative) {
+                value *= -1;
+            }
+            coefficient_list.push_back(value);
+            negative = !negative;
         }
     } else {
         throw invalid_argument(keyword + " is not a valid keyword.");
@@ -113,7 +134,7 @@ Polynomial::Polynomial(const string& keyword, int precision=40) {
  * Parameters: None.
  * Returns: The list of coefficients for the polynomial.  (Vector of doubles)
  */
-vector<double> Polynomial::get_coefficients() {
+vector<double> Polynomial::get_coefficients() const {
     return coefficient_list;
 }
 
@@ -130,6 +151,29 @@ void Polynomial::set_coefficients(vector<double> new_coefficients) {
 }
 
 
+/* Get a
+ *
+ * Returns the coefficient of a for the polynomial.  [c * (x - a)^b]
+ *
+ * Parameters: None
+ * Returns: The current value of a.  (Double)
+ */
+double Polynomial::get_a() const {
+    return a;
+}
+
+
+/* Set a
+ *
+ * Sets the coefficient of a of the polynomial to something else.  [c * (x - a)^b]
+ *
+ * Parameters: The new value of a to replace the old.  (Double)
+ * Returns: None.
+ */
+void Polynomial::set_a(double new_a) {
+    a = new_a;
+}
+
 
 // ===== CLASS FUNCTIONS =====
 
@@ -139,12 +183,16 @@ void Polynomial::set_coefficients(vector<double> new_coefficients) {
  * The solve function takes an input for x and solves the polynomial using the value for x.
  *
  * Parameters: The value for x used to solve the polynomial.  (Double)
- * Returns: The value of the polynomial.  (Long Long)
+ * Returns: The value of the polynomial.  (Long Double)
  */
-long long Polynomial::solve(double x) {
-    long long result = 0;
+long double Polynomial::solve(double x) const {
+    long double result = 0;
     for (int i = 0; i < coefficient_list.size(); i++) {
-        result += (coefficient_list[i] * pow(x, i));
+        if (keyword == "ln" && x > 2) {
+            result -= (coefficient_list[i] * pow((1.0 / x) - a, i));
+        } else {
+            result += (coefficient_list[i] * pow(x - a, i));
+        }
     }
     return result;
 }
@@ -222,7 +270,7 @@ Polynomial Polynomial::power(unsigned int x) {
  * - reduced: Display all terms from ascending order excluding those with 0 as their coefficient.
  * Returns: None.
  */
-void Polynomial::display(const string& keyword) {
+void Polynomial::display(const string& keyword) const {
     if (!coefficient_list.empty()) {
         for (int i = 0; i < coefficient_list.size(); i++) {
             // If the user wants to see a reduced representation of the polynomial, all terms with
@@ -231,7 +279,13 @@ void Polynomial::display(const string& keyword) {
                 continue;
             }
 
-            cout << "(" << coefficient_list[i] << " * x^" << i << ")";
+            if (a == 0) {
+                cout << "(" << coefficient_list[i] << " * x^" << i << ")";
+            } else if (a > 0) {
+                cout << "(" << coefficient_list[i] << " * (x - " << a << ")^" << i << ")";
+            } else {
+                cout << "(" << coefficient_list[i] << " * (x + " << a * -1 << ")^" << i << ")";
+            }
 
             if (i != coefficient_list.size() - 1) {
                 if (coefficient_list[i] != 0 || keyword != "reduced") {
@@ -261,6 +315,17 @@ void Polynomial::display(const string& keyword) {
  * Returns: The summed-up polynomial.  (Polynomial)
  */
 Polynomial Polynomial::operator+(const Polynomial &other) {
+    // The function checks if the two polynomials could be added together.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+                "These two polynomials have different values of 'a'." << endl <<
+                "Current polynomial value of a: " << a << endl <<
+                "Other polynomial value of a: " << other.a << endl <<
+                "Adding these two polynomials together would result in a mathematically" << endl <<
+                "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     auto new_coefficient_list = coefficient_list;
     int constant_count = new_coefficient_list.size();
     int other_constant_count = other.coefficient_list.size();
@@ -286,6 +351,17 @@ Polynomial Polynomial::operator+(const Polynomial &other) {
 }
 
 void Polynomial::operator+=(const Polynomial &other) {
+    // The function checks if the two polynomials could be added together.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+             "These two polynomials have different values of 'a'." << endl <<
+             "Current polynomial value of a: " << a << endl <<
+             "Other polynomial value of a: " << other.a << endl <<
+             "Adding these two polynomials together would result in a mathematically" << endl <<
+             "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     int constant_count = coefficient_list.size();
     int other_constant_count = other.coefficient_list.size();
 
@@ -316,6 +392,17 @@ void Polynomial::operator+=(const Polynomial &other) {
  * Returns: The subtracted polynomial.  (Polynomial)
  */
 Polynomial Polynomial::operator-(const Polynomial &other) {
+    // The function checks if the two polynomials could be subtracted.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+             "These two polynomials have different values of 'a'." << endl <<
+             "Current polynomial value of a: " << a << endl <<
+             "Other polynomial value of a: " << other.a << endl <<
+             "Adding these two polynomials together would result in a mathematically" << endl <<
+             "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     auto new_coefficient_list = coefficient_list;
     int constant_count = new_coefficient_list.size();
     int other_constant_count = other.coefficient_list.size();
@@ -341,6 +428,17 @@ Polynomial Polynomial::operator-(const Polynomial &other) {
 }
 
 void Polynomial::operator-=(const Polynomial &other) {
+    // The function checks if the two polynomials could be subtracted.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+             "These two polynomials have different values of 'a'." << endl <<
+             "Current polynomial value of a: " << a << endl <<
+             "Other polynomial value of a: " << other.a << endl <<
+             "Adding these two polynomials together would result in a mathematically" << endl <<
+             "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     int constant_count = coefficient_list.size();
     int other_constant_count = other.coefficient_list.size();
 
@@ -371,6 +469,17 @@ void Polynomial::operator-=(const Polynomial &other) {
  * Returns: The product of the two polynomials.  (Polynomial)
  */
 Polynomial Polynomial::operator*(const Polynomial& other) {
+    // The function checks if the two polynomials could be multiplied.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+             "These two polynomials have different values of 'a'." << endl <<
+             "Current polynomial value of a: " << a << endl <<
+             "Other polynomial value of a: " << other.a << endl <<
+             "Adding these two polynomials together would result in a mathematically" << endl <<
+             "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     // Space is allocated for the new polynomial.
     vector<double> new_coefficient_list;
     int new_size = coefficient_list.size() + other.coefficient_list.size() - 1;
@@ -392,6 +501,17 @@ Polynomial Polynomial::operator*(const Polynomial& other) {
 }
 
 void Polynomial::operator*=(const Polynomial& other) {
+    // The function checks if the two polynomials could be multiplied.  If not, an error is raised.
+    if (a != other.a) {
+        cerr << "[PolynomialC/ERROR]" << endl <<
+             "These two polynomials have different values of 'a'." << endl <<
+             "Current polynomial value of a: " << a << endl <<
+             "Other polynomial value of a: " << other.a << endl <<
+             "Adding these two polynomials together would result in a mathematically" << endl <<
+             "incorrect polynomial." << endl;
+        throw invalid_argument("Polynomial a mismatch.");
+    }
+
     // Space is allocated for the new polynomial.
     vector<double> temp;
     int new_size = coefficient_list.size() + other.coefficient_list.size() - 1;
@@ -420,13 +540,7 @@ void Polynomial::operator*=(const Polynomial& other) {
  * Parameters: Another polynomial.  (Polynomial)
  * Returns: The parameter polynomial.  (Polynomial)
  */
-Polynomial& Polynomial::operator=(const Polynomial& other) {
-    coefficient_list = other.coefficient_list;
-    return *this;
-}
-
-
-
+Polynomial& Polynomial::operator=(const Polynomial& other) = default;
 
 
 // ===== CLASS INTERACTIONS WITH NON-POLYNOMIAL OBJECTS =====
@@ -548,7 +662,7 @@ void Polynomial::operator/=(const float x) {
  * Parameters: The ith power of x.  (Integer)
  * Returns: The coefficient at the specified ith power of x.  (Double)
  */
-double Polynomial::operator[](int i) {
+double Polynomial::operator[](int i) const {
     return coefficient_list[i];
 }
 
@@ -558,8 +672,8 @@ double Polynomial::operator[](int i) {
  * The parentheses operator solves the polynomial given a number x.
  *
  * Parameters: The input number, x.  (Double)
- * Returns: The result of the polynomial.  (Long Long)
+ * Returns: The result of the polynomial.  (Long Double)
  */
-long long Polynomial::operator()(double x) {
+long double Polynomial::operator()(double x) const {
     return solve(x);
 }

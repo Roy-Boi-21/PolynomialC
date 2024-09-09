@@ -1,5 +1,6 @@
-This is a open-source class designed to make Calculus easier to implement in C++.
-PolynomialC's polynomials can do the following.
+# Welcome to PolynomialC!
+
+This is a open-source class designed to make Calculus easier to implement in C++.  PolynomialC's polynomials can do the following.
 - ALGEBRA
   - Addition with constants and other polynomials.
   - Subtraction with constants and other polynomials.

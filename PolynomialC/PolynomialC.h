@@ -58,6 +58,7 @@ public:
     // Miscellaneous Operations
     double operator[](int i) const;
     long double operator()(double x) const;
+    friend ostream& operator<<(ostream& out, const Polynomial& obj);
 };
 
 

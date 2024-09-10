@@ -268,28 +268,80 @@ Polynomial Polynomial::power(unsigned int x) {
  * Parameters: A keyword for how the terms should be displayed.  (String)
  * - all: Display all terms from ascending order, even those with 0 as their coefficient.
  * - reduced: Display all terms from ascending order excluding those with 0 as their coefficient.
+ * - simple: Display all terms from descending order as orderly as possible.
  * Returns: None.
  */
-void Polynomial::display(const string& keyword) const {
+void Polynomial::display(const string& set_keyword) const {
     if (!coefficient_list.empty()) {
-        for (int i = 0; i < coefficient_list.size(); i++) {
-            // If the user wants to see a reduced representation of the polynomial, all terms with
-            // 0 as their coefficient will be hidden.
-            if (coefficient_list[i] == 0 && keyword == "reduced") {
-                continue;
-            }
+        if (set_keyword != "simple") {
+            for (int i = 0; i < coefficient_list.size(); i++) {
+                // If the user wants to see a reduced representation of the polynomial, all terms with
+                // 0 as their coefficient will be hidden.
+                if (coefficient_list[i] == 0 && set_keyword == "reduced") {
+                    continue;
+                }
 
-            if (a == 0) {
-                cout << "(" << coefficient_list[i] << " * x^" << i << ")";
-            } else if (a > 0) {
-                cout << "(" << coefficient_list[i] << " * (x - " << a << ")^" << i << ")";
-            } else {
-                cout << "(" << coefficient_list[i] << " * (x + " << a * -1 << ")^" << i << ")";
-            }
+                if (a == 0) {
+                    cout << "(" << coefficient_list[i] << " * x^" << i << ")";
+                } else if (a > 0) {
+                    cout << "(" << coefficient_list[i] << " * (x - " << a << ")^" << i << ")";
+                } else {
+                    cout << "(" << coefficient_list[i] << " * (x + " << a * -1 << ")^" << i << ")";
+                }
 
-            if (i != coefficient_list.size() - 1) {
-                if (coefficient_list[i] != 0 || keyword != "reduced") {
-                    cout << " + ";
+                if (i != coefficient_list.size() - 1) {
+                    if (coefficient_list[i] != 0 || set_keyword != "reduced") {
+                        cout << " + ";
+                    }
+                }
+            }
+        } else {
+            for (int i = coefficient_list.size() - 1; i >= 0; i--) {
+                // All 0 terms will be hidden in a simple display.
+                if (coefficient_list[i] == 0) {
+                    continue;
+                }
+
+                // If the coefficient is an integer, then it will be appended next to x instead of
+                // being displayed as multiplied by x.
+                if (floor(coefficient_list[i]) == ceil(coefficient_list[i])) {
+                    if (coefficient_list[i] != 1 || i == 0) {
+                        cout << coefficient_list[i];
+                    }
+                    if (i > 0) {
+                        if (a == 0) {
+                            cout << "x";
+                        } else if (a > 0) {
+                            cout << "(x - " << a << ")";
+                        } else {
+                            cout << "(x + " << a * -1 << ")";
+                        }
+                    }
+                    if (i > 1) {
+                        cout << "^" << i;
+                    }
+                } else {
+                    if (coefficient_list[i] != 1 || i == 0) {
+                        cout << "(" << coefficient_list[i] << ")";
+                    }
+                    if (i > 0) {
+                        if (a == 0) {
+                            cout << "* x";
+                        } else if (a > 0) {
+                            cout << "* (x - " << a << ")";
+                        } else {
+                            cout << "* (x + " << a * -1 << ")";
+                        }
+                    }
+                    if (i > 1) {
+                        cout << "^" << i;
+                    }
+                }
+
+                if (i != 0) {
+                    if (coefficient_list[i] != 0) {
+                        cout << " + ";
+                    }
                 }
             }
         }
@@ -676,4 +728,66 @@ double Polynomial::operator[](int i) const {
  */
 long double Polynomial::operator()(double x) const {
     return solve(x);
+}
+
+
+/* Angle Bracket Operator
+ *
+ * The angle bracket operator allows the polynomial to be displayed without calling the display
+ * function.
+ *
+ * Parameters: Ofstream object, the polynomial itself.
+ * Returns: Ofstream object.
+ */
+ostream &operator<<(ostream& out, const Polynomial& obj) {
+    for (int i = obj.coefficient_list.size() - 1; i >= 0; i--) {
+        // All 0 terms will be hidden in a simple display.
+        if (obj.coefficient_list[i] == 0) {
+            continue;
+        }
+
+        // If the coefficient is an integer, then it will be appended next to x instead of
+        // being displayed as multiplied by x.
+        if (floor(obj.coefficient_list[i]) == ceil(obj.coefficient_list[i])) {
+            if (obj.coefficient_list[i] != 1 || i == 0) {
+                out << obj.coefficient_list[i];
+            }
+            if (i > 0) {
+                if (obj.a == 0) {
+                    out << "x";
+                } else if (obj.a > 0) {
+                    out << "(x - " << obj.a << ")";
+                } else {
+                    out << "(x + " << obj.a * -1 << ")";
+                }
+            }
+            if (i > 1) {
+                out << "^" << i;
+            }
+        } else {
+            if (obj.coefficient_list[i] != 1 || i == 0) {
+                out << "(" << obj.coefficient_list[i] << ")";
+            }
+            if (i > 0) {
+                if (obj.a == 0) {
+                    out << "* x";
+                } else if (obj.a > 0) {
+                    out << "* (x - " << obj.a << ")";
+                } else {
+                    out << "* (x + " << obj.a * -1 << ")";
+                }
+            }
+            if (i > 1) {
+                out << "^" << i;
+            }
+        }
+
+        if (i != 0) {
+            if (obj.coefficient_list[i] != 0) {
+                out << " + ";
+            }
+        }
+    }
+
+    return out;
 }

@@ -17,6 +17,11 @@ class Polynomial {
     double a;
     string keyword;
 
+    // Private helper functions (the end user is not supposed to directly call these)
+    void hidden_display(const string& set_keyword) const;
+    bool check_behind(int i) const;
+    bool check_ahead(int i) const;
+
 public:
     // Class Constructors
     Polynomial();
@@ -34,7 +39,7 @@ public:
     Polynomial differentiate();
     Polynomial integrate(double c=0);
     Polynomial power(unsigned int x);
-    void display(const string& keyword="all") const;
+    void display(const string& set_keyword="all") const;
 
     // Class Interactions with other polynomials
     Polynomial operator+(const Polynomial& other);

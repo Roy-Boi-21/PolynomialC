@@ -300,7 +300,7 @@ long double Polynomial::solve(double x) const {
  * Parameters: None.
  * Returns: The derivative of the current polynomial.  (Polynomial)
  */
-Polynomial Polynomial::differentiate() {
+Polynomial Polynomial::differentiate() const {
     vector<double> diff_coefficient_list;
     for (int i = 1; i < coefficient_list.size(); i++) {
         diff_coefficient_list.push_back(coefficient_list[i] * i);
@@ -353,6 +353,55 @@ Polynomial Polynomial::power(unsigned int x) {
     }
 
     return self;
+}
+
+
+/* Zero
+ *
+ * The zero function finds a value of x that will result in the polynomial returning 0 if such an
+ * x exists.
+ *
+ * Parameters: An initial guess for where the zero is (Double), a tolerance value determining how
+ * close can the result be before a zero is declared to be found.  (Double)
+ * Returns: The value of x that will result in the polynomial returning 0.  (Double)
+ */
+double Polynomial::zero(double guess, double tolerance) const {
+    double increment = 1.0;
+    Polynomial derivative = differentiate();
+    long double result = solve(guess);
+    long double derivative_result = derivative.solve(guess);
+    bool converging = false;
+    bool diverging = false;
+
+    while (result >= tolerance || result <= -tolerance) {
+        // If the polynomial only consists of a constant term, then the loop will terminate early
+        // in order to prevent an infinite loop where the function fails to converge.
+        if (coefficient_list.size() <= 1) {
+            break;
+        }
+        
+        if ((result * derivative_result) > 0) {
+            // If the result and the derivative have the same sign, then the guess is going towards 0.
+            guess -= increment;
+            diverging = true;
+        } else {
+            // If the result and the derivative are different signs, then the guess is going away from 0.
+            guess += increment;
+            converging = true;
+        }
+
+        // If the guess changed directions on its path to 0, then the guess is close to 0 but not close
+        // enough.  Therefore, the guess must increase its precision to find the zero.
+        if (converging && diverging) {
+            converging = false;
+            diverging = false;
+            increment /= 2;
+        }
+
+        result = solve(guess);
+        derivative_result = derivative.solve(guess);
+    }
+    return guess;
 }
 
 

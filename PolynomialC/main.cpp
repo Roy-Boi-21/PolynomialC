@@ -19,7 +19,8 @@ int main() {
     cout << "What is the product of (" << poly_a << ") and (" << poly_b << ")?" << endl;
     poly_a *= poly_b;
     cout << poly_a << endl;
-    cout << endl;
+    cout << "What value of x will result in " << poly_a << " outputting zero?" << endl;
+    cout << poly_a.zero() << endl << endl;
 
     double pi = 3.14159265359;
     double e = 2.71828182846;

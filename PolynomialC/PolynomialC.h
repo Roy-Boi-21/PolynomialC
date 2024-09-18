@@ -36,9 +36,10 @@ public:
 
     // Class Functions
     long double solve(double x) const;
-    Polynomial differentiate();
+    Polynomial differentiate() const;
     Polynomial integrate(double c=0);
     Polynomial power(unsigned int x);
+    double zero(double guess=0.0, double tolerance=1e-10) const;
     void display(const string& set_keyword="all") const;
 
     // Class Interactions with other polynomials
